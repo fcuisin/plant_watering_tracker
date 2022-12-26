@@ -6,7 +6,14 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     await dbConnect();
 
-    res.json("test");
+    const plants = await Plant.find({});
+
+    const newPlant = new Plant(req.body);
+    plants.push(newPlant);
+
+    await newPlant.save();
+
+    res.json(plants);
   } catch (e) {
     console.error(e);
   }
