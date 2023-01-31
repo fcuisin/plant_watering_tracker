@@ -1,10 +1,21 @@
-import { Button, Modal, NumberInput, Stack, TextInput } from "@mantine/core";
+import {
+  ActionIcon,
+  Button,
+  Drawer,
+  NumberInput,
+  Select,
+  Stack,
+  TextInput,
+} from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { useState } from "react";
 import { IPlant } from "../models/plants";
 
 export default function AddPlantModal() {
   const [newPlant, setNewPlant] = useState<IPlant>();
   const [openedModal, setOpenedModal] = useState<boolean>();
+
+  const matches = useMediaQuery("(min-width: 640px)");
 
   const addPlantHandler = async (plantData: IPlant) => {
     try {
@@ -16,13 +27,13 @@ export default function AddPlantModal() {
         },
         body: JSON.stringify(plantData),
       });
-      console.log("Plant successfully created!");
+      setOpenedModal(false);
     } catch (error) {
       console.log(error.toString());
     }
   };
 
-  const handleUpdate = (field: string, value: string | number) => {
+  const handleUpdate = (field: string, value: string | number | number[]) => {
     setNewPlant((prevState) => {
       return {
         ...prevState,
@@ -33,21 +44,44 @@ export default function AddPlantModal() {
 
   return (
     <>
-      <Button
-        radius="md"
-        color="dark"
-        size="md"
-        onClick={() => setOpenedModal(true)}
-      >
-        Add a plant
-      </Button>
-      <Modal
+      {matches ? (
+        <Button
+          color="green.0"
+          size="md"
+          radius="xs"
+          onClick={() => setOpenedModal(true)}
+          sx={(theme) => ({
+            color: theme.black,
+            border: `1px solid ${theme.colors.green[1]}`,
+            transition: "border-radius .15s",
+            "&:hover": {
+              backgroundColor: theme.colors.green[0],
+              borderRadius: theme.radius.lg,
+              transition: "border-radius .15s",
+            },
+          })}
+        >
+          Add a plant
+        </Button>
+      ) : (
+        <ActionIcon
+          color="green.1"
+          variant="filled"
+          onClick={() => setOpenedModal(true)}
+        >
+          <i className="ri-add-line ri-lg"></i>
+        </ActionIcon>
+      )}
+      <Drawer
         opened={openedModal}
         onClose={() => setOpenedModal(false)}
         title="Add a new plant"
+        padding="xl"
+        size="xl"
       >
         <Stack spacing="md">
           <TextInput
+            required
             label="Name"
             value={newPlant?.name ?? ""}
             onChange={(event) =>
@@ -55,13 +89,38 @@ export default function AddPlantModal() {
             }
           />
           <NumberInput
-            label="Frequency"
+            required
+            label="Frequency (per week)"
             value={newPlant?.waterFrequency ?? 1}
             onChange={(value) => handleUpdate("waterFrequency", value)}
           />
-          <Button onClick={() => addPlantHandler(newPlant)}>Create</Button>
+          <NumberInput
+            label="Water quantity (ml)"
+            value={newPlant?.waterQuantity ?? 0}
+            onChange={(value) => handleUpdate("waterQuantity", value)}
+          />
+          <Select
+            label="Location"
+            value={newPlant?.location ?? ""}
+            data={[
+              { value: "kitchen", label: "Kitchen" },
+              { value: "living-room", label: "Living-room" },
+              { value: "dining-room", label: "Dining-room" },
+              { value: "bathroom", label: "Bathroom" },
+              { value: "bedroom", label: "Bedroom" },
+            ]}
+            onChange={(value) => handleUpdate("location", value)}
+          />
+          <Button
+            mt="md"
+            color="green.1"
+            onClick={() => addPlantHandler(newPlant)}
+            style={{ width: 200 }}
+          >
+            Create
+          </Button>
         </Stack>
-      </Modal>
+      </Drawer>
     </>
   );
 }

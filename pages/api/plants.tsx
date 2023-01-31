@@ -3,18 +3,32 @@ import dbConnect from "../../lib/mongodb";
 import { Plant } from "../../models/plants";
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  try {
-    await dbConnect();
+  switch (req.method) {
+    case "GET":
+      try {
+        console.log("yo");
+        await dbConnect();
 
-    const plants = await Plant.find({});
+        const plants = await Plant.find({});
+        res.json(plants);
+      } catch (e) {
+        console.error(e);
+      }
+      break;
+    case "POST":
+      try {
+        await dbConnect();
 
-    const newPlant = new Plant(req.body);
-    plants.push(newPlant);
-
-    await newPlant.save();
-
-    res.json(plants);
-  } catch (e) {
-    console.error(e);
+        const plants = await Plant.find({});
+        const newPlant = new Plant(req.body);
+        plants.push(newPlant);
+        await newPlant.save();
+        res.json(plants);
+      } catch (e) {
+        console.error(e);
+      }
+      break;
+    default:
+      break;
   }
 };
