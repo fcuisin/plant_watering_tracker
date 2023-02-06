@@ -2,16 +2,23 @@ import {
   ActionIcon,
   Button,
   Drawer,
+  Group,
+  Input,
   NumberInput,
   Select,
   Stack,
+  Text,
   TextInput,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { useState } from "react";
 import { IPlant } from "../models/plants";
 
-export default function AddPlantModal() {
+export default function AddPlantModal({
+  onAddPlant,
+}: {
+  onAddPlant: (value: IPlant[]) => void;
+}) {
   const [newPlant, setNewPlant] = useState<IPlant>();
   const [openedModal, setOpenedModal] = useState<boolean>();
 
@@ -19,7 +26,7 @@ export default function AddPlantModal() {
 
   const addPlantHandler = async (plantData: IPlant) => {
     try {
-      await fetch("/api/plants", {
+      const req = await fetch("/api/plants", {
         method: "POST",
         headers: {
           Accept: "application/json",
@@ -27,7 +34,10 @@ export default function AddPlantModal() {
         },
         body: JSON.stringify(plantData),
       });
+      const data = await req.json();
+      onAddPlant(data);
       setOpenedModal(false);
+      setNewPlant(null);
     } catch (error) {
       console.log(error.toString());
     }
@@ -74,7 +84,10 @@ export default function AddPlantModal() {
       )}
       <Drawer
         opened={openedModal}
-        onClose={() => setOpenedModal(false)}
+        onClose={() => {
+          setOpenedModal(false);
+          setNewPlant(null);
+        }}
         title="Add a new plant"
         padding="xl"
         size="xl"
@@ -88,12 +101,16 @@ export default function AddPlantModal() {
               handleUpdate("name", event.currentTarget.value)
             }
           />
-          <NumberInput
-            required
-            label="Frequency (per week)"
-            value={newPlant?.waterFrequency ?? 1}
-            onChange={(value) => handleUpdate("waterFrequency", value)}
-          />
+          <Input.Wrapper label="Watering frequency" required>
+            <Group mt="xs">
+              <Text size="sm">Every</Text>
+              <NumberInput
+                value={newPlant?.waterFrequency ?? 0}
+                onChange={(value) => handleUpdate("waterFrequency", value)}
+              />
+              <Text size="sm">days</Text>
+            </Group>
+          </Input.Wrapper>
           <NumberInput
             label="Water quantity (ml)"
             value={newPlant?.waterQuantity ?? 0}
@@ -114,7 +131,9 @@ export default function AddPlantModal() {
           <Button
             mt="md"
             color="green.1"
-            onClick={() => addPlantHandler(newPlant)}
+            onClick={() =>
+              addPlantHandler({ ...newPlant, lastWatered: new Date() })
+            }
             style={{ width: 200 }}
           >
             Create

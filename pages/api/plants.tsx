@@ -6,7 +6,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   switch (req.method) {
     case "GET":
       try {
-        console.log("yo");
         await dbConnect();
 
         const plants = await Plant.find({});
@@ -24,6 +23,15 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         plants.push(newPlant);
         await newPlant.save();
         res.json(plants);
+      } catch (e) {
+        console.error(e);
+      }
+      break;
+    case "DELETE":
+      try {
+        await dbConnect();
+
+        console.log(req.body);
       } catch (e) {
         console.error(e);
       }

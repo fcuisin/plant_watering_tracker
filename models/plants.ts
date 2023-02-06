@@ -6,18 +6,20 @@ const { model, models } = mongoose;
 export interface IPlant {
   _id: ObjectId;
   name: string;
+  description?: string;
   waterFrequency: number;
+  lastWatered: Date;
   waterQuantity?: number;
-  lastWatered?: Date;
   location?: string;
 }
 
 export const PlantSchema = new Schema<IPlant>(
   {
     name: { type: String, required: true },
+    description: String,
     waterFrequency: { type: Number, required: true },
-    waterQuantity: Number,
-    lastWatered: Date,
+    lastWatered: { type: Date, default: Date.now },
+    waterQuantity: { type: Number, min: 1 },
     location: String,
   },
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
