@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useState } from "react";
 import AddPlantModal from "../components/AddPlantModal";
 
-import Logo from "../components/images/main-logo.svg";
+import Logo from "../public/main-logo.svg";
 import PlantCard from "../components/PlantCard";
 import { HEADER_HEIGHT } from "../components/utils/constants";
 import { IPlant } from "../models/plants";

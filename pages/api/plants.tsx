@@ -22,6 +22,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         const newPlant = new Plant(req.body);
         plants.push(newPlant);
         await newPlant.save();
+        console.log(newPlant);
         res.json(plants);
       } catch (e) {
         console.error(e);

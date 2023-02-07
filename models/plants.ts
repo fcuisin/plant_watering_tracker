@@ -11,6 +11,7 @@ export interface IPlant {
   lastWatered: Date;
   waterQuantity?: number;
   location?: string;
+  icon?: string;
 }
 
 export const PlantSchema = new Schema<IPlant>(
@@ -21,6 +22,7 @@ export const PlantSchema = new Schema<IPlant>(
     lastWatered: { type: Date, default: Date.now },
     waterQuantity: { type: Number, min: 1 },
     location: String,
+    icon: String,
   },
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );

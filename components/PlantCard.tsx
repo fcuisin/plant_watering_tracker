@@ -1,5 +1,14 @@
-import { ActionIcon, Badge, Card, Group, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Badge,
+  Card,
+  Group,
+  Stack,
+  Text,
+  Tooltip,
+} from "@mantine/core";
 import { IPlant } from "../models/plants";
+import PlantIcon from "./PlantIcon";
 
 export default function PlantCard({ plant }: { plant: IPlant }) {
   const getDaysUntilNextWater = (({ waterFrequency, lastWatered }) => {
@@ -10,36 +19,34 @@ export default function PlantCard({ plant }: { plant: IPlant }) {
     return Math.ceil(waterFrequency - daysSinceLastWater);
   })(plant);
 
-  console.log(getDaysUntilNextWater);
-
   return (
-    <Card shadow="sm" p="lg" radius="md" withBorder>
-      <Card.Section></Card.Section>
+    <Card shadow="sm" p="sm" radius="md" withBorder>
+      <Card.Section
+        style={{ display: "flex", justifyContent: "center", padding: 10 }}
+      >
+        <PlantIcon icon={plant?.icon} />
+      </Card.Section>
 
-      <Group position="apart" my="sm" noWrap>
-        <Text weight={600} lineClamp={1}>
-          {plant.name}
-        </Text>
-        {plant.location && (
-          <Badge
-            color="green.1"
-            variant="outline"
-            size="sm"
-            radius="sm"
-            style={{ textTransform: "capitalize" }}
-          >
-            {plant.location}
-          </Badge>
-        )}
-      </Group>
-
-      <Group position="apart">
-        <Text size="sm" color="dimmed">
-          Water in {getDaysUntilNextWater} days
-        </Text>
-        <ActionIcon variant="light" color="blue" radius="md" title="Water now!">
-          <i className="ri-contrast-drop-2-line" />
-        </ActionIcon>
+      <Group position="apart" noWrap>
+        <Stack spacing={0}>
+          <Text weight={600} lineClamp={1}>
+            {plant.name}
+          </Text>
+          <Text mt={5} color="dimmed" size="sm" lineClamp={1}>
+            <Group spacing="xs">
+              <i className="ri-contrast-drop-2-line ri-md" />
+              {plant.waterQuantity} ml
+            </Group>
+          </Text>
+          <Text size="sm" color="dimmed">
+            Water in {getDaysUntilNextWater} days
+          </Text>
+        </Stack>
+        <Tooltip label="Water now">
+          <ActionIcon variant="outline" color="blue" size="lg" radius="xl">
+            <i className="ri-contrast-drop-2-line ri-lg" />
+          </ActionIcon>
+        </Tooltip>
       </Group>
     </Card>
   );
