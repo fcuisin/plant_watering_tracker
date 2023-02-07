@@ -9,6 +9,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         await dbConnect();
 
         const plants = await Plant.find({});
+
         res.json(plants);
       } catch (e) {
         console.error(e);
@@ -22,17 +23,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         const newPlant = new Plant(req.body);
         plants.push(newPlant);
         await newPlant.save();
-        console.log(newPlant);
-        res.json(plants);
-      } catch (e) {
-        console.error(e);
-      }
-      break;
-    case "DELETE":
-      try {
-        await dbConnect();
 
-        console.log(req.body);
+        res.json(plants);
       } catch (e) {
         console.error(e);
       }

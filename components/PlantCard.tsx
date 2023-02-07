@@ -7,6 +7,7 @@ import {
   Text,
   Tooltip,
 } from "@mantine/core";
+import Link from "next/link";
 import { IPlant } from "../models/plants";
 import PlantIcon from "./PlantIcon";
 
@@ -20,7 +21,14 @@ export default function PlantCard({ plant }: { plant: IPlant }) {
   })(plant);
 
   return (
-    <Card shadow="sm" p="sm" radius="md" withBorder>
+    <Card
+      shadow="sm"
+      p="sm"
+      radius="md"
+      withBorder
+      component={Link}
+      href={`/plant/${plant?._id.toString()}`}
+    >
       <Card.Section
         style={{ display: "flex", justifyContent: "center", padding: 10 }}
       >

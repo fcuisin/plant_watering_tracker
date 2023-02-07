@@ -7,6 +7,7 @@ import Logo from "../public/main-logo.svg";
 import PlantCard from "../components/PlantCard";
 import { HEADER_HEIGHT } from "../components/utils/constants";
 import { IPlant } from "../models/plants";
+import { fetchAPI } from "../lib/fetchApi";
 
 export default function Home({ plants }: { plants?: IPlant[] }) {
   const [plantsList, setPlantsList] = useState<IPlant[]>(plants);
@@ -47,14 +48,9 @@ export default function Home({ plants }: { plants?: IPlant[] }) {
 }
 
 export async function getServerSideProps() {
-  const res = await fetch("http://localhost:3000/api/plants", {
+  const plants = await fetchAPI("http://localhost:3000/api/plants", {
     method: "GET",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
   });
-  const plants = await res.json();
 
   return { props: { plants } };
 }

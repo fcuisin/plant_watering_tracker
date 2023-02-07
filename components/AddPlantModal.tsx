@@ -16,6 +16,7 @@ import {
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { useState } from "react";
+import { fetchAPI } from "../lib/fetchApi";
 import { IPlant } from "../models/plants";
 import PlantIcon, { listOfIcons } from "./PlantIcon";
 
@@ -31,16 +32,11 @@ export default function AddPlantModal({
 
   const addPlantHandler = async (plantData: IPlant) => {
     try {
-      const req = await fetch("/api/plants", {
+      const plants = await fetchAPI("/api/plants", {
         method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(plantData),
       });
-      const data = await req.json();
-      onAddPlant(data);
+      onAddPlant(plants);
       setOpenedModal(false);
       setNewPlant(null);
     } catch (error) {
