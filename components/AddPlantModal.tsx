@@ -23,7 +23,7 @@ import PlantIcon, { listOfIcons } from "./PlantIcon";
 export default function AddPlantModal({
   onAddPlant,
 }: {
-  onAddPlant: (value: IPlant[]) => void;
+  onAddPlant?: (value: IPlant[]) => void;
 }) {
   const [newPlant, setNewPlant] = useState<IPlant>();
   const [openedModal, setOpenedModal] = useState<boolean>();
@@ -36,7 +36,7 @@ export default function AddPlantModal({
         method: "POST",
         body: JSON.stringify(plantData),
       });
-      onAddPlant(plants);
+      if (onAddPlant) onAddPlant(plants);
       setOpenedModal(false);
       setNewPlant(null);
     } catch (error) {

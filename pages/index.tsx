@@ -8,28 +8,17 @@ import PlantCard from "../components/PlantCard";
 import { HEADER_HEIGHT } from "../components/utils/constants";
 import { IPlant } from "../models/plants";
 import { fetchAPI } from "../lib/fetchApi";
+import Layout from "../components/Layout";
 
 export default function Home({ plants }: { plants?: IPlant[] }) {
   const [plantsList, setPlantsList] = useState<IPlant[]>(plants);
 
   const handleUpdatePlantsList = (value: IPlant[]) => setPlantsList(value);
 
+  console.log(plantsList);
+
   return (
-    <Container fluid>
-      <Header height={HEADER_HEIGHT}>
-        <Group
-          spacing={0}
-          position="apart"
-          style={{ height: HEADER_HEIGHT }}
-          noWrap
-        >
-          <Group>
-            <Image src={Logo} height="30" width="100" alt="main-logo" />
-            <Title order={2}>My Garden</Title>
-          </Group>
-          <AddPlantModal onAddPlant={handleUpdatePlantsList} />
-        </Group>
-      </Header>
+    <Layout cta={<AddPlantModal onAddPlant={handleUpdatePlantsList} />}>
       <SimpleGrid
         cols={5}
         mt="lg"
@@ -43,7 +32,7 @@ export default function Home({ plants }: { plants?: IPlant[] }) {
           <PlantCard key={plant._id.toString()} plant={plant} />
         ))}
       </SimpleGrid>
-    </Container>
+    </Layout>
   );
 }
 
