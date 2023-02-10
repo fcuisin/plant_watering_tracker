@@ -28,7 +28,7 @@ export default function AddPlantModal({
   const [newPlant, setNewPlant] = useState<IPlant>();
   const [openedModal, setOpenedModal] = useState<boolean>();
 
-  const matches = useMediaQuery("(min-width: 640px)");
+  const matches = useMediaQuery("(max-width: 640px)");
 
   const addPlantHandler = async (plantData: IPlant) => {
     try {
@@ -55,7 +55,7 @@ export default function AddPlantModal({
 
   return (
     <>
-      {matches ? (
+      {!matches ? (
         <Button
           color="green.0"
           size="md"

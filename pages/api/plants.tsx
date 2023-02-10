@@ -29,6 +29,20 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         console.error(e);
       }
       break;
+    case "PUT":
+      try {
+        await dbConnect();
+
+        const plant = await Plant.findById(req.body._id);
+        Object.assign(plant, req.body);
+        await plant.save();
+
+        const newPlantsdData = await Plant.find({});
+        res.json(newPlantsdData);
+      } catch (e) {
+        console.error(e);
+      }
+      break;
     default:
       break;
   }

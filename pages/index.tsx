@@ -15,8 +15,6 @@ export default function Home({ plants }: { plants?: IPlant[] }) {
 
   const handleUpdatePlantsList = (value: IPlant[]) => setPlantsList(value);
 
-  console.log(plantsList);
-
   return (
     <Layout cta={<AddPlantModal onAddPlant={handleUpdatePlantsList} />}>
       <SimpleGrid
