@@ -1,8 +1,6 @@
-import { Card, Container, Group, Paper, Stack, Text } from "@mantine/core";
+import { Container, Group, Paper, Stack, Text } from "@mantine/core";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { ReactNode } from "react";
-import AddPlantModal from "../../components/AddPlantModal";
-import Layout from "../../components/Layout";
 import PlantIcon from "../../components/PlantIcon";
 import { fetchAPI } from "../../lib/fetchApi";
 import { IPlant } from "../../models/plants";
@@ -52,18 +50,16 @@ export default function Plant(props: IPlant) {
   );
 
   return (
-    <Layout cta={<AddPlantModal />}>
-      <Container fluid p="lg">
-        <Group>
-          <PlantIcon icon={icon} size={200} />
-          <Stack>
-            {renderPropCard(plantDetails.waterQuantity, waterQuantity)}
-            {renderPropCard(plantDetails.waterFrequency, waterFrequency)}
-            {renderPropCard(plantDetails.location, location)}
-          </Stack>
-        </Group>
-      </Container>
-    </Layout>
+    <Container fluid p="lg">
+      <Group>
+        <PlantIcon icon={icon} size={200} />
+        <Stack>
+          {renderPropCard(plantDetails.waterQuantity, waterQuantity)}
+          {renderPropCard(plantDetails.waterFrequency, waterFrequency)}
+          {renderPropCard(plantDetails.location, location)}
+        </Stack>
+      </Group>
+    </Container>
   );
 }
 

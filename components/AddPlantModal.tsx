@@ -15,16 +15,15 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { fetchAPI } from "../lib/fetchApi";
 import { IPlant } from "../models/plants";
+import { PlantsContext } from "./contexts/PlantsContext";
 import PlantIcon, { listOfIcons } from "./PlantIcon";
 
-export default function AddPlantModal({
-  onAddPlant,
-}: {
-  onAddPlant?: (value: IPlant[]) => void;
-}) {
+export default function AddPlantModal() {
+  const { setPlantsList } = useContext(PlantsContext);
+
   const [newPlant, setNewPlant] = useState<IPlant>();
   const [openedModal, setOpenedModal] = useState<boolean>();
 
@@ -36,7 +35,7 @@ export default function AddPlantModal({
         method: "POST",
         body: JSON.stringify(plantData),
       });
-      if (onAddPlant) onAddPlant(plants);
+      setPlantsList(plants);
       setOpenedModal(false);
       setNewPlant(null);
     } catch (error) {

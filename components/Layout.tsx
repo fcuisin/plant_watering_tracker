@@ -5,13 +5,7 @@ import Logo from "../public/main-logo.svg";
 import AddPlantModal from "./AddPlantModal";
 import { HEADER_HEIGHT } from "./utils/constants";
 
-export default function Layout({
-  cta,
-  children,
-}: {
-  cta: ReactNode;
-  children: ReactNode;
-}) {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
     <Container fluid>
       <Header height={HEADER_HEIGHT}>
@@ -25,7 +19,7 @@ export default function Layout({
             <Image src={Logo} height="30" width="100" alt="main-logo" />
             <Title order={2}>My Garden</Title>
           </Group>
-          {cta}
+          <AddPlantModal />
         </Group>
       </Header>
       {children}

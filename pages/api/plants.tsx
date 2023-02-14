@@ -37,8 +37,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         Object.assign(plant, req.body);
         await plant.save();
 
-        const newPlantsdData = await Plant.find({});
-        res.json(newPlantsdData);
+        const newPlantsList = await Plant.find({});
+        res.json({ newPlantsList, plant });
       } catch (e) {
         console.error(e);
       }

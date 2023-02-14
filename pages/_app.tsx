@@ -1,6 +1,8 @@
 import { MantineProvider, MantineThemeOverride } from "@mantine/core";
 import type { AppProps } from "next/app";
 import "remixicon/fonts/remixicon.css";
+import { PlantsProvider } from "../components/contexts/PlantsContext";
+import Layout from "../components/Layout";
 
 const MantineThemeProps: MantineThemeOverride = {
   fontFamily: "Gill Sans, sans-serif",
@@ -28,7 +30,11 @@ export default function App({ Component, pageProps }: AppProps) {
       withNormalizeCSS
       theme={MantineThemeProps}
     >
-      <Component {...pageProps} />
+      <PlantsProvider initialData={pageProps?.initialData}>
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
+      </PlantsProvider>
     </MantineProvider>
   );
 }

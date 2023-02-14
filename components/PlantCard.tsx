@@ -8,11 +8,15 @@ import {
   Tooltip,
 } from "@mantine/core";
 import Link from "next/link";
+import { useContext } from "react";
 import { fetchAPI } from "../lib/fetchApi";
 import { IPlant } from "../models/plants";
+import { PlantsContext } from "./contexts/PlantsContext";
 import PlantIcon from "./PlantIcon";
 
 export default function PlantCard({ plant }: { plant: IPlant }) {
+  const { setPlantsList } = useContext(PlantsContext);
+
   const getDaysUntilNextWater = (({ waterFrequency, lastWatered }) => {
     const msSinceLastWater =
       new Date().getTime() - new Date(lastWatered).getTime();
@@ -23,10 +27,11 @@ export default function PlantCard({ plant }: { plant: IPlant }) {
 
   const updatePlantHandler = async (plantData: IPlant) => {
     try {
-      await fetchAPI("/api/plants", {
+      const { newPlantsList } = await fetchAPI("/api/plants", {
         method: "PUT",
         body: JSON.stringify(plantData),
       });
+      setPlantsList(newPlantsList);
     } catch (error) {
       console.log(error.toString());
     }
