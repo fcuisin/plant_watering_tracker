@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Badge,
   Box,
   Button,
@@ -90,6 +91,19 @@ export default function Plant(plant: IPlant) {
     router.replace(router.asPath);
   };
 
+  const deletePlantHandler = async (plantData: IPlant) => {
+    try {
+      const updatedPlantsList = await fetchAPI("/api/plants", {
+        method: "DELETE",
+        body: JSON.stringify(plantData),
+      });
+      setPlantsList(updatedPlantsList);
+      router.push("/");
+    } catch (error) {
+      console.log(error.toString());
+    }
+  };
+
   const items = details.map((feature) => (
     <div key={feature.prop} className={classes.feature}>
       <div className={classes.overlay} />
@@ -160,17 +174,22 @@ export default function Plant(plant: IPlant) {
           <Col span={12} md={7}>
             <Stack spacing="lg" mt="lg">
               <Title order={3} weight={600} color="gray">
-                <Group>
-                  PLANT INFO
-                  <Badge
-                    size="lg"
-                    variant="outline"
-                    color="dark"
-                    radius="sm"
-                    style={{ fontWeight: 500 }}
-                  >
-                    {location}
-                  </Badge>
+                <Group position="apart">
+                  <Group>
+                    PLANT INFO
+                    <Badge
+                      size="lg"
+                      variant="outline"
+                      color="dark"
+                      radius="sm"
+                      style={{ fontWeight: 500 }}
+                    >
+                      {location}
+                    </Badge>
+                  </Group>
+                  <ActionIcon onClick={() => deletePlantHandler(plant)}>
+                    <i className="ri-delete-bin-line ri-lg"></i>
+                  </ActionIcon>
                 </Group>
               </Title>
               <Text color="gray">{description}</Text>

@@ -43,6 +43,19 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         console.error(e);
       }
       break;
+    case "DELETE":
+      try {
+        await dbConnect();
+
+        const plant = await Plant.findById(req.body._id);
+        await plant.deleteOne({ _id: req.body._id });
+
+        const plantsList = await Plant.find({});
+        res.json(plantsList);
+      } catch (e) {
+        console.error(e);
+      }
+      break;
     default:
       break;
   }
