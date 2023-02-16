@@ -15,41 +15,62 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
+import { useRouter } from "next/router";
 import { useContext, useState } from "react";
 import { fetchAPI } from "../lib/fetchApi";
 import { IPlant } from "../models/plants";
 import { PlantsContext } from "./contexts/PlantsContext";
 import PlantIcon, { listOfIcons } from "./PlantIcon";
 
-export default function AddPlantModal() {
+export default function PlantModalEdition({
+  plant,
+  buttonText = "Add a plant",
+  isAddMode = false,
+}: {
+  plant?: IPlant;
+  buttonText?: string;
+  isAddMode?: boolean;
+}) {
+  const router = useRouter();
   const { setPlantsList } = useContext(PlantsContext);
-
-  const [newPlant, setNewPlant] = useState<IPlant>();
-  const [openedModal, setOpenedModal] = useState<boolean>();
-
   const matches = useMediaQuery("(max-width: 640px)");
 
-  const addPlantHandler = async (plantData: IPlant) => {
+  const [plantDetail, setPlantDetail] = useState<IPlant>(plant);
+  const [openedModal, setOpenedModal] = useState<boolean>();
+
+  const handler = async (plantData: IPlant, method: "POST" | "PUT") => {
     try {
-      const plants = await fetchAPI("/api/plants", {
-        method: "POST",
+      const { updatedPlantsList } = await fetchAPI("/api/plants", {
+        method,
         body: JSON.stringify(plantData),
       });
-      setPlantsList(plants);
+      setPlantsList(updatedPlantsList);
+      if (isAddMode) {
+        setPlantDetail(null);
+      } else {
+        router.replace(router.asPath);
+      }
       setOpenedModal(false);
-      setNewPlant(null);
     } catch (error) {
       console.log(error.toString());
     }
   };
 
-  const handleUpdate = (field: string, value: string | number | number[]) => {
-    setNewPlant((prevState) => {
+  const handleUpdatePlantDetails = (
+    field: string,
+    value: string | number | number[]
+  ) => {
+    setPlantDetail((prevState) => {
       return {
         ...prevState,
         [field]: value,
       };
     });
+  };
+
+  const canSaveNewPlant = (newPlant: IPlant): boolean => {
+    const { name, waterFrequency, icon, location } = newPlant ?? {};
+    return !!(name && waterFrequency && icon && location);
   };
 
   return (
@@ -61,21 +82,19 @@ export default function AddPlantModal() {
           radius="xs"
           onClick={() => setOpenedModal(true)}
           sx={(theme) => ({
-            color: theme.black,
-            border: `1px solid ${theme.colors.green[1]}`,
+            color: theme.white,
             transition: "border-radius .15s",
             "&:hover": {
-              backgroundColor: theme.colors.green[0],
               borderRadius: theme.radius.lg,
               transition: "border-radius .15s",
             },
           })}
         >
-          Add a plant
+          {buttonText}
         </Button>
       ) : (
         <ActionIcon
-          color="green.1"
+          color="green.0"
           variant="filled"
           onClick={() => setOpenedModal(true)}
         >
@@ -86,9 +105,9 @@ export default function AddPlantModal() {
         opened={openedModal}
         onClose={() => {
           setOpenedModal(false);
-          setNewPlant(null);
+          isAddMode && setPlantDetail(null);
         }}
-        title="Add a new plant"
+        title={isAddMode ? "Add a new plant" : `Edit ${plantDetail?.name}`}
         padding="xl"
         size="xl"
       >
@@ -97,9 +116,19 @@ export default function AddPlantModal() {
             <TextInput
               required
               label="Name"
-              value={newPlant?.name ?? ""}
+              value={plantDetail?.name ?? ""}
               onChange={(event) =>
-                handleUpdate("name", event.currentTarget.value)
+                handleUpdatePlantDetails("name", event.currentTarget.value)
+              }
+            />
+            <TextInput
+              label="Description"
+              value={plantDetail?.description ?? ""}
+              onChange={(event) =>
+                handleUpdatePlantDetails(
+                  "description",
+                  event.currentTarget.value
+                )
               }
             />
             <Input.Wrapper label="Watering frequency" required>
@@ -107,20 +136,25 @@ export default function AddPlantModal() {
                 <Text size="sm">Every</Text>
                 <NumberInput
                   w={100}
-                  value={newPlant?.waterFrequency ?? 0}
-                  onChange={(value) => handleUpdate("waterFrequency", value)}
+                  value={plantDetail?.waterFrequency ?? 0}
+                  onChange={(value) =>
+                    handleUpdatePlantDetails("waterFrequency", value)
+                  }
                 />
                 <Text size="sm">days</Text>
               </Group>
             </Input.Wrapper>
             <NumberInput
               label="Water quantity (ml)"
-              value={newPlant?.waterQuantity ?? 0}
-              onChange={(value) => handleUpdate("waterQuantity", value)}
+              value={plantDetail?.waterQuantity ?? 0}
+              onChange={(value) =>
+                handleUpdatePlantDetails("waterQuantity", value)
+              }
             />
             <Select
+              required
               label="Location"
-              value={newPlant?.location ?? ""}
+              value={plantDetail?.location ?? ""}
               data={[
                 { value: "kitchen", label: "Kitchen" },
                 { value: "living-room", label: "Living-room" },
@@ -128,21 +162,21 @@ export default function AddPlantModal() {
                 { value: "bathroom", label: "Bathroom" },
                 { value: "bedroom", label: "Bedroom" },
               ]}
-              onChange={(value) => handleUpdate("location", value)}
+              onChange={(value) => handleUpdatePlantDetails("location", value)}
             />
-            <Input.Wrapper label="Choose a picture">
+            <Input.Wrapper required label="Choose a picture">
               <Card withBorder radius="md">
                 <SimpleGrid cols={3} mt="md">
                   {Object.keys(listOfIcons).map((icon, index) => (
                     <UnstyledButton
                       key={index}
-                      onClick={() => handleUpdate("icon", icon)}
+                      onClick={() => handleUpdatePlantDetails("icon", icon)}
                       sx={(theme) => ({
                         padding: 10,
                         boxShadow: theme.shadows.md,
                         borderRadius: theme.radius.sm,
                         border:
-                          newPlant?.icon === icon &&
+                          plantDetail?.icon === icon &&
                           `1px solid ${theme.colors.gray[6]}`,
                         display: "flex",
                         flexDirection: "column",
@@ -165,12 +199,15 @@ export default function AddPlantModal() {
         <Button
           mt="md"
           color="green.1"
-          onClick={() =>
-            addPlantHandler({ ...newPlant, lastWatered: new Date() })
-          }
+          onClick={() => {
+            isAddMode
+              ? handler({ ...plantDetail, lastWatered: new Date() }, "POST")
+              : handler(plantDetail, "PUT");
+          }}
+          disabled={!canSaveNewPlant(plantDetail)}
           style={{ width: 200 }}
         >
-          Create
+          Save
         </Button>
       </Drawer>
     </>

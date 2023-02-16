@@ -19,12 +19,12 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       try {
         await dbConnect();
 
-        const plants = await Plant.find({});
+        const plantsList = await Plant.find({});
         const newPlant = new Plant(req.body);
-        plants.push(newPlant);
+        plantsList.push(newPlant);
         await newPlant.save();
 
-        res.json(plants);
+        res.json({ updatedPlantsList: plantsList, plant: newPlant });
       } catch (e) {
         console.error(e);
       }
@@ -37,8 +37,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         Object.assign(plant, req.body);
         await plant.save();
 
-        const newPlantsList = await Plant.find({});
-        res.json({ newPlantsList, plant });
+        const plantsList = await Plant.find({});
+        res.json({ updatedPlantsList: plantsList, plant });
       } catch (e) {
         console.error(e);
       }

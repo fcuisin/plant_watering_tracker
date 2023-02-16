@@ -17,7 +17,7 @@ const MantineThemeProps: MantineThemeOverride = {
   headings: { fontFamily: "Gill Sans, sans-serif", fontWeight: 600 },
   cursorType: "pointer",
   colors: {
-    green: ["#9AD56B", "#116149"],
+    green: ["#3FA195", "#245852"],
   },
   white: "#F6F6F6",
   black: "#1E1E1E",
@@ -31,9 +31,7 @@ export default function App({ Component, pageProps }: AppProps) {
       theme={MantineThemeProps}
     >
       <PlantsProvider initialData={pageProps?.initialData}>
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
+        <Component {...pageProps} />
       </PlantsProvider>
     </MantineProvider>
   );

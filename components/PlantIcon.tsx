@@ -31,11 +31,19 @@ export const listOfIcons = {
 export default function PlantIcon({
   icon,
   size = 100,
+  style,
 }: {
   icon: string;
   size?: number;
+  style?: React.CSSProperties;
 }) {
   return (
-    <Image src={listOfIcons[icon]} alt={icon} width={size} height={size} />
+    <Image
+      src={listOfIcons[icon]}
+      alt={icon}
+      width={size}
+      height={size}
+      style={style}
+    />
   );
 }

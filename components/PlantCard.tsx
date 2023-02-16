@@ -27,14 +27,20 @@ export default function PlantCard({ plant }: { plant: IPlant }) {
 
   const updatePlantHandler = async (plantData: IPlant) => {
     try {
-      const { newPlantsList } = await fetchAPI("/api/plants", {
+      const { updatedPlantsList } = await fetchAPI("/api/plants", {
         method: "PUT",
         body: JSON.stringify(plantData),
       });
-      setPlantsList(newPlantsList);
+      setPlantsList(updatedPlantsList);
     } catch (error) {
       console.log(error.toString());
     }
+  };
+
+  const getCardColor = (defaultColor: string): string => {
+    if (getDaysUntilNextWater < 0) return "red";
+    if (getDaysUntilNextWater === 0) return "orange";
+    return defaultColor;
   };
 
   return (
@@ -45,6 +51,9 @@ export default function PlantCard({ plant }: { plant: IPlant }) {
       withBorder
       component={Link}
       href={`/plant/${plant?._id.toString()}`}
+      sx={(theme) => ({
+        borderColor: theme.colors[getCardColor("gray")][2],
+      })}
     >
       <Card.Section
         style={{ display: "flex", justifyContent: "center", padding: 10 }}
@@ -55,28 +64,40 @@ export default function PlantCard({ plant }: { plant: IPlant }) {
       <Group position="apart" noWrap>
         <Stack spacing={0}>
           <Text weight={600} lineClamp={1}>
-            {plant.name}
+            {plant?.name}
           </Text>
           <Text mt={5} color="dimmed" size="sm" lineClamp={1}>
             <Group spacing="xs">
               <i className="ri-contrast-drop-2-line ri-md" />
-              {plant.waterQuantity} ml
+              {plant?.waterQuantity} ml
             </Group>
           </Text>
-          {getDaysUntilNextWater >= 0 ? (
-            <Text size="sm" color="dimmed">
-              Water in {getDaysUntilNextWater} days
-            </Text>
-          ) : (
-            <Text size="sm" color="red">
-              Needs water since {Math.abs(getDaysUntilNextWater)} days
-            </Text>
-          )}
+          <Text mb={5} color="dimmed" size="sm" lineClamp={1}>
+            <Group spacing="xs">
+              <i className="ri-map-pin-line ri-md" />
+              {!!plant?.location
+                ? plant?.location?.at(0).toUpperCase() +
+                  plant?.location?.slice(1)
+                : "Somewhere"}
+            </Group>
+          </Text>
+
+          <Badge
+            size="sm"
+            color={getCardColor("dimmed")}
+            style={{ fontWeight: 600 }}
+          >
+            {getDaysUntilNextWater > 0
+              ? `Water in ${getDaysUntilNextWater} day(s)`
+              : getDaysUntilNextWater === 0
+              ? "Water today"
+              : `Needs water since ${Math.abs(getDaysUntilNextWater)} day(s)`}
+          </Badge>
         </Stack>
         <Tooltip label="Water now">
           <ActionIcon
             variant="outline"
-            color="blue"
+            color={getCardColor("blue")}
             size="lg"
             radius="xl"
             onClick={(e) => {
