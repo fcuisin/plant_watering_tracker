@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Badge,
+  Box,
   Card,
   Group,
   Stack,
@@ -13,6 +14,7 @@ import { fetchAPI } from "../lib/fetchApi";
 import { IPlant } from "../models/plants";
 import { PlantsContext } from "./contexts/PlantsContext";
 import PlantIcon from "./PlantIcon";
+import { updatePlant } from "./utils/updatePlant";
 
 export default function PlantCard({ plant }: { plant: IPlant }) {
   const { setPlantsList } = useContext(PlantsContext);
@@ -26,21 +28,33 @@ export default function PlantCard({ plant }: { plant: IPlant }) {
   })(plant);
 
   const updatePlantHandler = async (plantData: IPlant) => {
-    try {
-      const { updatedPlantsList } = await fetchAPI("/api/plants", {
-        method: "PUT",
-        body: JSON.stringify(plantData),
-      });
-      setPlantsList(updatedPlantsList);
-    } catch (error) {
-      console.log(error.toString());
-    }
+    const updatedPlants = await updatePlant(plantData);
+    setPlantsList(updatedPlants);
   };
 
   const getCardColor = (defaultColor: string): string => {
     if (getDaysUntilNextWater < 0) return "red";
     if (getDaysUntilNextWater === 0) return "orange";
     return defaultColor;
+  };
+
+  const getRandomInt = (max: number): number => {
+    return Math.floor(Math.random() * max);
+  };
+
+  const generateRandomBackground = () => {
+    const points = Array.from({ length: 8 }, () => getRandomInt(80));
+    return (
+      points
+        .map((point) => `${point}%`)
+        .slice(4)
+        .join(" ") +
+      " / " +
+      points
+        .map((point) => `${point}%`)
+        .slice(4, 8)
+        .join(" ")
+    );
   };
 
   return (
@@ -51,21 +65,26 @@ export default function PlantCard({ plant }: { plant: IPlant }) {
       withBorder
       component={Link}
       href={`/plant/${plant?._id.toString()}`}
-      sx={(theme) => ({
-        borderColor: theme.colors[getCardColor("gray")][2],
-      })}
     >
       <Card.Section
         style={{ display: "flex", justifyContent: "center", padding: 10 }}
       >
-        <PlantIcon icon={plant?.icon} />
+        <Box
+          style={{
+            padding: 20,
+            borderRadius: generateRandomBackground(),
+            backgroundColor: "#E1F1F2",
+          }}
+        >
+          <PlantIcon icon={plant?.icon} />
+        </Box>
       </Card.Section>
 
+      <Text weight={600} lineClamp={1}>
+        {plant?.name}
+      </Text>
       <Group position="apart" noWrap>
-        <Stack spacing={0}>
-          <Text weight={600} lineClamp={1}>
-            {plant?.name}
-          </Text>
+        <Stack spacing={5}>
           <Text mt={5} color="dimmed" size="sm" lineClamp={1}>
             <Group spacing="xs">
               <i className="ri-contrast-drop-2-line ri-md" />
@@ -81,18 +100,6 @@ export default function PlantCard({ plant }: { plant: IPlant }) {
                 : "Somewhere"}
             </Group>
           </Text>
-
-          <Badge
-            size="sm"
-            color={getCardColor("dimmed")}
-            style={{ fontWeight: 600 }}
-          >
-            {getDaysUntilNextWater > 0
-              ? `Water in ${getDaysUntilNextWater} day(s)`
-              : getDaysUntilNextWater === 0
-              ? "Water today"
-              : `Needs water since ${Math.abs(getDaysUntilNextWater)} day(s)`}
-          </Badge>
         </Stack>
         <Tooltip label="Water now">
           <ActionIcon
@@ -110,6 +117,17 @@ export default function PlantCard({ plant }: { plant: IPlant }) {
           </ActionIcon>
         </Tooltip>
       </Group>
+      <Badge
+        size="sm"
+        color={getCardColor("dimmed")}
+        style={{ fontWeight: 600 }}
+      >
+        {getDaysUntilNextWater > 0
+          ? `Water in ${getDaysUntilNextWater} day(s)`
+          : getDaysUntilNextWater === 0
+          ? "Water today"
+          : `Needs water since ${Math.abs(getDaysUntilNextWater)} day(s)`}
+      </Badge>
     </Card>
   );
 }

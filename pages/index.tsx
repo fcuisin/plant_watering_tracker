@@ -13,7 +13,7 @@ export default function Home() {
 
   return (
     <Layout
-      callToAction={<PlantModalEdition />}
+      callToAction={<PlantModalEdition isAddMode />}
       title={<Title order={2}>My Garden</Title>}
     >
       <SimpleGrid

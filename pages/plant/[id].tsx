@@ -1,4 +1,6 @@
 import {
+  Badge,
+  Box,
   Button,
   Col,
   Container,
@@ -8,7 +10,6 @@ import {
   SimpleGrid,
   Stack,
   Text,
-  ThemeIcon,
   Title,
 } from "@mantine/core";
 import { GetStaticPaths, GetStaticProps } from "next";
@@ -17,8 +18,11 @@ import Layout from "../../components/Layout";
 import PlantIcon from "../../components/PlantIcon";
 import { fetchAPI } from "../../lib/fetchApi";
 import { IPlant } from "../../models/plants";
-import { ReactNode } from "react";
+import { ReactNode, useContext } from "react";
 import { HEADER_HEIGHT } from "../../components/utils/constants";
+import { updatePlant } from "../../components/utils/updatePlant";
+import { PlantsContext } from "../../components/contexts/PlantsContext";
+import { useRouter } from "next/router";
 
 interface PlantDetails {
   prop: keyof IPlant;
@@ -40,7 +44,7 @@ const details: PlantDetails[] = [
   {
     prop: "lastWatered",
     icon: <i className="ri-24-hours-line ri-xl"></i>,
-    title: "Last Watering Date",
+    title: "Last Watering",
   },
 ];
 
@@ -54,10 +58,10 @@ const useStyles = createStyles((theme) => ({
   overlay: {
     position: "absolute",
     height: 85,
-    width: 150,
+    width: 140,
     top: 0,
     left: 0,
-    backgroundColor: "#FEE1C3",
+    backgroundColor: "#E1F1F2",
     zIndex: 1,
   },
 
@@ -68,15 +72,22 @@ const useStyles = createStyles((theme) => ({
 }));
 
 export default function Plant(plant: IPlant) {
-  console.log(plant.name);
   const { classes } = useStyles();
+  const router = useRouter();
+  const { setPlantsList } = useContext(PlantsContext);
 
-  const { name, icon, description } = plant;
+  const { name, icon, description, location } = plant;
 
   const getTimeBetweenDates = (prop: Date): number => {
     return Math.floor(
       (new Date().getTime() - new Date(prop).getTime()) / (1000 * 3600 * 24)
     );
+  };
+
+  const updatePlantHandler = async (plantData: IPlant) => {
+    const updatedPlants = await updatePlant(plantData);
+    setPlantsList(updatedPlants);
+    router.replace(router.asPath);
   };
 
   const items = details.map((feature) => (
@@ -88,7 +99,7 @@ export default function Plant(plant: IPlant) {
         <Text weight={300} size="xl" mt={5} color="gray">
           {feature.title}
         </Text>
-        <Text color="dark" size="md">
+        <Text color="dark" size="md" weight={300}>
           {feature.prop === "waterFrequency" &&
             `Every ${plant[feature.prop]} day(s)`}
           {feature.prop === "lastWatered" &&
@@ -116,7 +127,15 @@ export default function Plant(plant: IPlant) {
             }}
           >
             <Stack align="center">
-              <PlantIcon icon={icon} size={300} />
+              <Box
+                style={{
+                  padding: 70,
+                  borderRadius: "16% 84% 28% 72% / 55% 30% 70% 45%",
+                  backgroundColor: "#FFEBD8",
+                }}
+              >
+                <PlantIcon icon={icon} size={300} />
+              </Box>
               <Button
                 size="lg"
                 mt="xl"
@@ -130,6 +149,9 @@ export default function Plant(plant: IPlant) {
                   },
                 })}
                 rightIcon={<i className="ri-contrast-drop-2-line ri-lg" />}
+                onClick={() =>
+                  updatePlantHandler({ ...plant, lastWatered: new Date() })
+                }
               >
                 Water
               </Button>
@@ -138,9 +160,20 @@ export default function Plant(plant: IPlant) {
           <Col span={12} md={7}>
             <Stack spacing="lg" mt="lg">
               <Title order={3} weight={600} color="gray">
-                PLANT INFO
+                <Group>
+                  PLANT INFO
+                  <Badge
+                    size="lg"
+                    variant="outline"
+                    color="dark"
+                    radius="sm"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {location}
+                  </Badge>
+                </Group>
               </Title>
-              <Text color="dimmed">{description}</Text>
+              <Text color="gray">{description}</Text>
               <SimpleGrid
                 cols={3}
                 spacing={30}
@@ -148,10 +181,9 @@ export default function Plant(plant: IPlant) {
               >
                 {items}
               </SimpleGrid>
-              <Title order={3} weight={600} mt="lg" color="gray">
-                WATERING HISTORY
-              </Title>
-              <Text color="dimmed">Coming soon!</Text>
+              <Text weight={400} mt="lg" color="gray">
+                (Coming soon) - Watering history
+              </Text>
             </Stack>
           </Col>
         </Grid>
