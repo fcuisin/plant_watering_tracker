@@ -1,8 +1,9 @@
+import { ApolloProvider } from "@apollo/client";
 import { MantineProvider, MantineThemeOverride } from "@mantine/core";
 import type { AppProps } from "next/app";
 import "remixicon/fonts/remixicon.css";
 import { PlantsProvider } from "../components/contexts/PlantsContext";
-import Layout from "../components/Layout";
+import { useApollo } from "../lib/apollo";
 
 const MantineThemeProps: MantineThemeOverride = {
   fontFamily: "Gill Sans, sans-serif",
@@ -24,15 +25,18 @@ const MantineThemeProps: MantineThemeOverride = {
 };
 
 export default function App({ Component, pageProps }: AppProps) {
+  const apolloClient = useApollo(pageProps.initialApolloState);
   return (
     <MantineProvider
       withGlobalStyles
       withNormalizeCSS
       theme={MantineThemeProps}
     >
-      <PlantsProvider initialData={pageProps?.initialData}>
-        <Component {...pageProps} />
-      </PlantsProvider>
+      <ApolloProvider client={apolloClient}>
+        <PlantsProvider initialData={pageProps?.initialData}>
+          <Component {...pageProps} />
+        </PlantsProvider>
+      </ApolloProvider>
     </MantineProvider>
   );
 }

@@ -1,12 +1,28 @@
+import { useContext } from "react";
+
 import { SimpleGrid, Title } from "@mantine/core";
-import { useContext, useState } from "react";
+import { gql } from "apollo-server-micro";
+import { useQuery } from "@apollo/client";
 
 import PlantCard from "../components/PlantCard";
-import { IPlant } from "../models/plants";
-import { fetchAPI } from "../lib/fetchApi";
 import { PlantsContext } from "../components/contexts/PlantsContext";
 import Layout from "../components/Layout";
 import PlantModalEdition from "../components/PlantModalEdition";
+import { initializeApollo } from "../lib/apollo";
+
+const GET_PLANTS = gql`
+  query {
+    plants {
+      _id
+      name
+      waterFrequency
+      lastWatered
+      waterQuantity
+      location
+      icon
+    }
+  }
+`;
 
 export default function Home() {
   const { plantsList } = useContext(PlantsContext);
@@ -33,10 +49,8 @@ export default function Home() {
   );
 }
 
-export async function getServerSideProps() {
-  const plants = await fetchAPI("http://localhost:3000/api/plants", {
-    method: "GET",
-  });
-
-  return { props: { initialData: plants } };
+export async function getStaticProps() {
+  const apolloClient = initializeApollo();
+  const { data } = await apolloClient.query({ query: GET_PLANTS });
+  return { props: { initialData: data.plants } };
 }
