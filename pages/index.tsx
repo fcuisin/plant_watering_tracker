@@ -1,16 +1,30 @@
-import { SimpleGrid, Title } from "@mantine/core";
-import { useContext, useState } from "react";
+import { useQuery, gql } from "@apollo/client";
+import { SimpleGrid, Text, Title } from "@mantine/core";
 
 import PlantCard from "../components/PlantCard";
-import { IPlant } from "../models/plants";
-import { fetchAPI } from "../lib/fetchApi";
-import { PlantsContext } from "../components/contexts/PlantsContext";
 import Layout from "../components/Layout";
 import PlantModalEdition from "../components/PlantModalEdition";
+import { initializeApollo } from "../lib/apollo";
+import { IPlant } from "../models/plants";
+
+export const GET_PLANTS = gql`
+  query {
+    plants {
+      _id
+      name
+      waterFrequency
+      lastWatered
+      waterQuantity
+      location
+      icon
+    }
+  }
+`;
 
 export default function Home() {
-  const { plantsList } = useContext(PlantsContext);
-
+  const { loading, error, data } = useQuery(GET_PLANTS);
+  if (loading) return <></>;
+  if (error) return <Text size="sm">Unable to retrieve plants</Text>;
   return (
     <Layout
       callToAction={<PlantModalEdition isAddMode />}
@@ -25,7 +39,7 @@ export default function Home() {
           { maxWidth: 300, cols: 1, spacing: "sm" },
         ]}
       >
-        {plantsList?.map((plant) => (
+        {data?.plants?.map((plant: IPlant) => (
           <PlantCard key={plant._id.toString()} plant={plant} />
         ))}
       </SimpleGrid>
@@ -33,10 +47,8 @@ export default function Home() {
   );
 }
 
-export async function getServerSideProps() {
-  const plants = await fetchAPI("http://localhost:3000/api/plants", {
-    method: "GET",
-  });
-
-  return { props: { initialData: plants } };
+export async function getStaticProps() {
+  const apolloClient = initializeApollo();
+  const { data } = await apolloClient.query({ query: GET_PLANTS });
+  return { props: { initialData: data.plants } };
 }

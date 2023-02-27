@@ -1,3 +1,4 @@
+import { useMutation, gql } from "@apollo/client";
 import {
   ActionIcon,
   Badge,
@@ -9,16 +10,21 @@ import {
   Tooltip,
 } from "@mantine/core";
 import Link from "next/link";
-import { useContext } from "react";
-import { fetchAPI } from "../lib/fetchApi";
+
 import { IPlant } from "../models/plants";
-import { PlantsContext } from "./contexts/PlantsContext";
+import { GET_PLANTS } from "../pages";
 import PlantIcon from "./PlantIcon";
-import { updatePlant } from "./utils/updatePlant";
+
+export const WATER_PLANT = gql`
+  mutation Mutation($plantId: ID) {
+    waterPlant(plantId: $plantId) {
+      _id
+      name
+    }
+  }
+`;
 
 export default function PlantCard({ plant }: { plant: IPlant }) {
-  const { setPlantsList } = useContext(PlantsContext);
-
   const getDaysUntilNextWater = (({ waterFrequency, lastWatered }) => {
     const msSinceLastWater =
       new Date().getTime() - new Date(lastWatered).getTime();
@@ -27,9 +33,16 @@ export default function PlantCard({ plant }: { plant: IPlant }) {
     return Math.ceil(waterFrequency - daysSinceLastWater);
   })(plant);
 
-  const updatePlantHandler = async (plantData: IPlant) => {
-    const updatedPlants = await updatePlant(plantData);
-    setPlantsList(updatedPlants);
+  const [waterPlant] = useMutation(WATER_PLANT, {
+    refetchQueries: [{ query: GET_PLANTS }],
+  });
+
+  const plantUpdateHandler = async (plantId) => {
+    try {
+      await waterPlant({ variables: { plantId } });
+    } catch (error) {
+      console.log(error.toString());
+    }
   };
 
   const getCardColor = (defaultColor: string): string => {
@@ -108,7 +121,7 @@ export default function PlantCard({ plant }: { plant: IPlant }) {
             size="lg"
             radius="xl"
             onClick={(e) => {
-              updatePlantHandler({ ...plant, lastWatered: new Date() });
+              plantUpdateHandler(plant?._id);
               e.stopPropagation();
               e.preventDefault();
             }}

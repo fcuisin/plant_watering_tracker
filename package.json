@@ -6,11 +6,18 @@
     "start": "next start"
   },
   "dependencies": {
+    "@apollo/client": "^3.7.9",
+    "@apollo/react-hooks": "^4.0.0",
     "@emotion/react": "^11.10.5",
     "@emotion/server": "^11.10.0",
     "@mantine/core": "^5.9.2",
     "@mantine/hooks": "^5.9.2",
     "@mantine/next": "^5.9.2",
+    "apollo-server-micro": "^3.11.1",
+    "cors": "^2.8.5",
+    "deepmerge": "^4.3.0",
+    "graphql": "^16.6.0",
+    "graphql-tools": "^8.3.18",
     "mongodb": "^4.8.1",
     "mongoose": "^6.8.0",
     "next": "latest",
