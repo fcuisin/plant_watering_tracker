@@ -1,3 +1,4 @@
+import { useMutation, gql } from "@apollo/client";
 import {
   ActionIcon,
   Button,
@@ -15,12 +16,19 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { useRouter } from "next/router";
-import { useContext, useState } from "react";
-import { fetchAPI } from "../lib/fetchApi";
+import { useState } from "react";
 import { IPlant } from "../models/plants";
-import { PlantsContext } from "./contexts/PlantsContext";
+import { GET_PLANTS } from "../pages";
 import PlantIcon, { listOfIcons } from "./PlantIcon";
+
+const ADD_PLANT = gql`
+  mutation Mutation($newPlant: PlantInput) {
+    addPlant(newPlant: $newPlant) {
+      _id
+      name
+    }
+  }
+`;
 
 export default function PlantModalEdition({
   plant,
@@ -31,24 +39,20 @@ export default function PlantModalEdition({
   buttonText?: string;
   isAddMode?: boolean;
 }) {
-  const router = useRouter();
-  const { setPlantsList } = useContext(PlantsContext);
   const matches = useMediaQuery("(max-width: 640px)");
 
   const [plantDetail, setPlantDetail] = useState<IPlant>(plant);
   const [openedModal, setOpenedModal] = useState<boolean>();
 
-  const handler = async (plantData: IPlant, method: "POST" | "PUT") => {
+  const [addPlant] = useMutation(ADD_PLANT, {
+    refetchQueries: [{ query: GET_PLANTS }],
+  });
+
+  const handler = async (plantData: IPlant) => {
     try {
-      const { updatedPlantsList } = await fetchAPI("/api/plants", {
-        method,
-        body: JSON.stringify(plantData),
-      });
-      setPlantsList(updatedPlantsList);
       if (isAddMode) {
+        await addPlant({ variables: { newPlant: plantData } });
         setPlantDetail(null);
-      } else {
-        router.replace(router.asPath);
       }
       setOpenedModal(false);
     } catch (error) {
@@ -201,8 +205,8 @@ export default function PlantModalEdition({
           color="green.1"
           onClick={() => {
             isAddMode
-              ? handler({ ...plantDetail, lastWatered: new Date() }, "POST")
-              : handler(plantDetail, "PUT");
+              ? handler({ ...plantDetail, lastWatered: new Date() })
+              : handler(plantDetail);
           }}
           disabled={!canSaveNewPlant(plantDetail)}
           style={{ width: 200 }}

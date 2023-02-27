@@ -2,7 +2,6 @@ import { ApolloProvider } from "@apollo/client";
 import { MantineProvider, MantineThemeOverride } from "@mantine/core";
 import type { AppProps } from "next/app";
 import "remixicon/fonts/remixicon.css";
-import { PlantsProvider } from "../components/contexts/PlantsContext";
 import { useApollo } from "../lib/apollo";
 
 const MantineThemeProps: MantineThemeOverride = {
@@ -33,9 +32,7 @@ export default function App({ Component, pageProps }: AppProps) {
       theme={MantineThemeProps}
     >
       <ApolloProvider client={apolloClient}>
-        <PlantsProvider initialData={pageProps?.initialData}>
-          <Component {...pageProps} />
-        </PlantsProvider>
+        <Component {...pageProps} />
       </ApolloProvider>
     </MantineProvider>
   );

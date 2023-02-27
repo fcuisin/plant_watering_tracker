@@ -1,3 +1,4 @@
+import { useMutation, gql } from "@apollo/client";
 import {
   ActionIcon,
   Badge,
@@ -17,13 +18,13 @@ import { GetStaticPaths, GetStaticProps } from "next";
 import PlantModalEdition from "../../components/PlantModalEdition";
 import Layout from "../../components/Layout";
 import PlantIcon from "../../components/PlantIcon";
-import { fetchAPI } from "../../lib/fetchApi";
 import { IPlant } from "../../models/plants";
-import { ReactNode, useContext } from "react";
+import { ReactNode } from "react";
 import { HEADER_HEIGHT } from "../../components/utils/constants";
-import { updatePlant } from "../../components/utils/updatePlant";
-import { PlantsContext } from "../../components/contexts/PlantsContext";
 import { useRouter } from "next/router";
+import { WATER_PLANT } from "../../components/PlantCard";
+import { GET_PLANTS } from "..";
+import { initializeApollo } from "../../lib/apollo";
 
 interface PlantDetails {
   prop: keyof IPlant;
@@ -72,36 +73,62 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
+const REMOVE_PLANT = gql`
+  mutation Mutation($plantId: ID) {
+    removePlant(plantId: $plantId) {
+      _id
+      name
+    }
+  }
+`;
+
+const PLANT_BY_ID = gql`
+  query ($plantId: ID) {
+    plant(plantId: $plantId) {
+      _id
+      name
+      waterFrequency
+      lastWatered
+      waterQuantity
+      location
+      icon
+    }
+  }
+`;
+
 export default function Plant(plant: IPlant) {
   const { classes } = useStyles();
   const router = useRouter();
-  const { setPlantsList } = useContext(PlantsContext);
 
   const { name, icon, description, location } = plant;
+
+  const [waterPlant] = useMutation(WATER_PLANT);
+  const [removePlant] = useMutation(REMOVE_PLANT, {
+    refetchQueries: [{ query: GET_PLANTS }],
+  });
+
+  const plantUpdateHandler = async (plantId) => {
+    try {
+      await waterPlant({ variables: { plantId } });
+      router.replace(router.asPath);
+    } catch (error) {
+      console.log(error.toString());
+    }
+  };
+
+  const deletePlantHandler = async (plantId) => {
+    try {
+      await removePlant({ variables: { plantId } });
+      router.push("/");
+    } catch (error) {
+      console.log(error.toString());
+    }
+  };
 
   const getTimeBetweenDates = (prop: Date): number => {
     return Math.floor(
       (new Date().getTime() - new Date(prop).getTime()) / (1000 * 3600 * 24)
     );
-  };
-
-  const updatePlantHandler = async (plantData: IPlant) => {
-    const updatedPlants = await updatePlant(plantData);
-    setPlantsList(updatedPlants);
-    router.replace(router.asPath);
-  };
-
-  const deletePlantHandler = async (plantData: IPlant) => {
-    try {
-      const updatedPlantsList = await fetchAPI("/api/plants", {
-        method: "DELETE",
-        body: JSON.stringify(plantData),
-      });
-      setPlantsList(updatedPlantsList);
-      router.push("/");
-    } catch (error) {
-      console.log(error.toString());
-    }
   };
 
   const items = details.map((feature) => (
@@ -163,9 +190,7 @@ export default function Plant(plant: IPlant) {
                   },
                 })}
                 rightIcon={<i className="ri-contrast-drop-2-line ri-lg" />}
-                onClick={() =>
-                  updatePlantHandler({ ...plant, lastWatered: new Date() })
-                }
+                onClick={() => plantUpdateHandler(plant?._id)}
               >
                 Water
               </Button>
@@ -187,7 +212,7 @@ export default function Plant(plant: IPlant) {
                       {location}
                     </Badge>
                   </Group>
-                  <ActionIcon onClick={() => deletePlantHandler(plant)}>
+                  <ActionIcon onClick={() => deletePlantHandler(plant?._id)}>
                     <i className="ri-delete-bin-line ri-lg"></i>
                   </ActionIcon>
                 </Group>
@@ -212,28 +237,25 @@ export default function Plant(plant: IPlant) {
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const data = await fetchAPI("http://localhost:3000/api/plants", {
-    method: "GET",
+  const apolloClient = initializeApollo();
+  const { data } = await apolloClient.query({
+    query: PLANT_BY_ID,
+    variables: { plantId: params.id },
   });
 
-  const plantData = data.find(
-    (plant: IPlant) => params.id === plant._id.toString()
-  );
-
   return {
-    props: plantData,
+    props: data.plant,
     revalidate: 10,
   };
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const allPlants = await fetchAPI("http://localhost:3000/api/plants", {
-    method: "GET",
-  });
+  const apolloClient = initializeApollo();
+  const { data } = await apolloClient.query({ query: GET_PLANTS });
 
   return {
     paths:
-      allPlants.map(({ _id }) => {
+      data?.plants?.map(({ _id }) => {
         return {
           params: {
             id: _id.toString(),

@@ -22,6 +22,24 @@ const PlantsDefs = gql`
 
   type Query {
     plants: [Plant]
+    plant(plantId: ID): Plant
+  }
+
+  input PlantInput {
+    _id: ID
+    name: String
+    description: String
+    waterFrequency: Int
+    lastWatered: Date
+    waterQuantity: Int
+    location: String
+    icon: String
+  }
+
+  type Mutation {
+    addPlant(newPlant: PlantInput): Plant
+    waterPlant(plantId: ID): Plant
+    removePlant(plantId: ID): Plant
   }
 `;
 
@@ -31,25 +49,52 @@ const resolvers = {
       try {
         const plants = await Plant.find({});
         return plants;
-      } catch (e) {
-        console.error(e);
+      } catch (error) {
+        throw error;
+      }
+    },
+    plant: async (_, { plantId }) => {
+      try {
+        return await Plant.findById({ _id: plantId });
+      } catch (error) {
+        throw error;
+      }
+    },
+  },
+  Mutation: {
+    addPlant: async (_, { newPlant }) => {
+      try {
+        return Plant.create(newPlant);
+      } catch (error) {
+        throw error;
+      }
+    },
+    waterPlant: async (_, { plantId }) => {
+      try {
+        return await Plant.findOneAndUpdate(
+          { _id: plantId },
+          { lastWatered: new Date() }
+        );
+      } catch (error) {
+        throw error;
+      }
+    },
+    removePlant: async (_, { plantId }) => {
+      try {
+        return await Plant.deleteOne({ _id: plantId });
+      } catch (error) {
+        throw error;
       }
     },
   },
   Date: new GraphQLScalarType({
     name: "Date",
     description: "Date custom scalar type",
-    serialize(value) {
-      if (value instanceof Date) {
-        return value.getTime(); // Convert outgoing Date to integer for JSON
-      }
-      throw Error("GraphQL Date Scalar serializer expected a `Date` object");
+    serialize(value: Date) {
+      return value.getTime();
     },
-    parseValue(value) {
-      if (typeof value === "number") {
-        return new Date(value); // Convert incoming integer to Date
-      }
-      throw new Error("GraphQL Date Scalar parser expected a `number`");
+    parseValue(value: Date) {
+      return new Date(value);
     },
     parseLiteral(ast) {
       if (ast.kind === Kind.INT) {
@@ -70,9 +115,9 @@ export const schema = makeExecutableSchema({
 const apolloServer = new ApolloServer({ schema });
 
 const cors = Cors({
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   credentials: true,
-  origin: ["http://localhost:3000"],
+  origin: ["https://studio.apollographql.com", "http://localhost:3000"],
 });
 
 function runMiddleware(req: NextApiRequest, res: NextApiResponse, fn: any) {

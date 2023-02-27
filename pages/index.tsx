@@ -1,16 +1,13 @@
-import { useContext } from "react";
-
-import { SimpleGrid, Title } from "@mantine/core";
-import { gql } from "apollo-server-micro";
-import { useQuery } from "@apollo/client";
+import { useQuery, gql } from "@apollo/client";
+import { SimpleGrid, Text, Title } from "@mantine/core";
 
 import PlantCard from "../components/PlantCard";
-import { PlantsContext } from "../components/contexts/PlantsContext";
 import Layout from "../components/Layout";
 import PlantModalEdition from "../components/PlantModalEdition";
 import { initializeApollo } from "../lib/apollo";
+import { IPlant } from "../models/plants";
 
-const GET_PLANTS = gql`
+export const GET_PLANTS = gql`
   query {
     plants {
       _id
@@ -25,8 +22,9 @@ const GET_PLANTS = gql`
 `;
 
 export default function Home() {
-  const { plantsList } = useContext(PlantsContext);
-
+  const { loading, error, data } = useQuery(GET_PLANTS);
+  if (loading) return <></>;
+  if (error) return <Text size="sm">Unable to retrieve plants</Text>;
   return (
     <Layout
       callToAction={<PlantModalEdition isAddMode />}
@@ -41,7 +39,7 @@ export default function Home() {
           { maxWidth: 300, cols: 1, spacing: "sm" },
         ]}
       >
-        {plantsList?.map((plant) => (
+        {data?.plants?.map((plant: IPlant) => (
           <PlantCard key={plant._id.toString()} plant={plant} />
         ))}
       </SimpleGrid>
