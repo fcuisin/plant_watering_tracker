@@ -1,92 +1,16 @@
-import { ApolloServer, gql } from "apollo-server-micro";
+import { ApolloServer } from "apollo-server-micro";
 import Cors from "cors";
 import { NextApiRequest, NextApiResponse } from "next";
 import { GraphQLScalarType, Kind } from "graphql";
 import { makeExecutableSchema } from "graphql-tools";
 import dbConnect from "../../lib/mongodb";
-import { Plant } from "../../models/plants";
-
-const PlantsDefs = gql`
-  scalar Date
-
-  type Plant {
-    _id: ID
-    name: String
-    description: String
-    waterFrequency: Int
-    lastWatered: Date
-    waterQuantity: Int
-    location: String
-    icon: String
-  }
-
-  type Query {
-    plants: [Plant]
-    plant(plantId: ID): Plant
-  }
-
-  input PlantInput {
-    _id: ID
-    name: String
-    description: String
-    waterFrequency: Int
-    lastWatered: Date
-    waterQuantity: Int
-    location: String
-    icon: String
-  }
-
-  type Mutation {
-    addPlant(newPlant: PlantInput): Plant
-    waterPlant(plantId: ID): Plant
-    removePlant(plantId: ID): Plant
-  }
-`;
+import { PlantsDefs } from "./plantsDefs";
+import { PlantsMutations } from "./mutations";
+import { PlantQueries } from "./queries";
 
 const resolvers = {
-  Query: {
-    plants: async () => {
-      try {
-        const plants = await Plant.find({});
-        return plants;
-      } catch (error) {
-        throw error;
-      }
-    },
-    plant: async (_, { plantId }) => {
-      try {
-        return await Plant.findById({ _id: plantId });
-      } catch (error) {
-        throw error;
-      }
-    },
-  },
-  Mutation: {
-    addPlant: async (_, { newPlant }) => {
-      try {
-        return Plant.create(newPlant);
-      } catch (error) {
-        throw error;
-      }
-    },
-    waterPlant: async (_, { plantId }) => {
-      try {
-        return await Plant.findOneAndUpdate(
-          { _id: plantId },
-          { lastWatered: new Date() }
-        );
-      } catch (error) {
-        throw error;
-      }
-    },
-    removePlant: async (_, { plantId }) => {
-      try {
-        return await Plant.deleteOne({ _id: plantId });
-      } catch (error) {
-        throw error;
-      }
-    },
-  },
+  ...PlantQueries,
+  ...PlantsMutations,
   Date: new GraphQLScalarType({
     name: "Date",
     description: "Date custom scalar type",
@@ -98,10 +22,8 @@ const resolvers = {
     },
     parseLiteral(ast) {
       if (ast.kind === Kind.INT) {
-        // Convert hard-coded AST string to integer and then to Date
         return new Date(parseInt(ast.value, 10));
       }
-      // Invalid hard-coded value (not an integer)
       return null;
     },
   }),
